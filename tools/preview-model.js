@@ -1,6 +1,8 @@
 const fs = require("fs");
 const join = require("path").join;
 const axios = require("axios");
+const path = require("path");
+const resolve = require("path").resolve;
 
 const basePath = join(
   "F:/stable-diffusion-webui",
@@ -8,26 +10,21 @@ const basePath = join(
   "Stable-diffusion"
 );
 
-async function saveImage(base64, fileDir, fileName, dataType = "base64") {
+async function saveImage(base64, saveName, dataType = "base64") {
   try {
-    var dir = join(fileDir);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    let filePath = join(dir, fileName);
-    fs.writeFileSync(filePath, base64, dataType);
-    console.log("save file: " + filePath);
-    return filePath;
+    fs.writeFileSync(saveName, base64, dataType);
+    console.log("save file: " + saveName);
+    return saveName;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
 
-async function getImage(modelName, fileDir, fileName) {
+async function getImage(modelName, saveName) {
   await await axios
     .post(
-      "http://127.0.0.1:8210/sdapi/v1/txt2img",
+      "http://index233:Index666@127.0.0.1:8210/sdapi/v1/txt2img",
       stableDiffusionArg({
         model: modelName,
       })
@@ -37,7 +34,7 @@ async function getImage(modelName, fileDir, fileName) {
       if (!data.images) return console.error("error");
       if (!Array.isArray(data.images) || data.images.length == 0)
         return console.error("error");
-      return saveImage(data.images[0], fileDir, fileName);
+      return saveImage(data.images[0], saveName);
     })
     .catch(async (err) => console.error(err));
 }
@@ -50,7 +47,9 @@ function getFiles(path, suffix) {
     let fPath = join(path, file);
     let state = fs.statSync(fPath);
     if (!state.isDirectory()) {
-      if (fPath.endsWith(suffix)) fileList.push(file);
+      if (fPath.endsWith(suffix)) fileList.push(fPath);
+    } else {
+      fileList.push(...getFiles(fPath, suffix));
     }
   });
   return fileList;
@@ -63,21 +62,22 @@ async function main() {
   let embFilesNoSuffix = embFileList.map((v) => v);
   console.log(embFilesNoSuffix);
   for (let i = 0; i < embFilesNoSuffix.length; i++) {
-    const fullName = embFilesNoSuffix[i];
-    const modelName = fullName.substring(0, fullName.lastIndexOf("."));
-    const pngName = modelName + ".preview.png";
-    if (!fs.existsSync(join(basePath, pngName))) {
-      await getImage(fullName, basePath, pngName);
-      // return; // 测试
+    const fullName = resolve(embFilesNoSuffix[i]);
+    const file = path.parse(fullName);
+    const parent = path.parse(file.dir);
+    const pngName = file.name + ".preview.png";
+    const modelPath = join(parent.name, file.base);
+    if (!fs.existsSync(resolve(file.dir, pngName))) {
+      await getImage(modelPath, resolve(file.dir, pngName));
+    //   return; // 测试
     }
   }
 }
 function stableDiffusionArg(option = {}) {
-  console.log(option);
-  return {
+  option = {
     prompt:
       option.prompts ||
-      "masterpiece, best quality, clavicle, crop top, purple hair, pink eyes, under boob, cleavage, short sleeves, covered nipples, hand on chest, pond, in the water, cum on breasts, dripping water, shot, upper body, delicate face, delicate girl, delicate, beautiful, beautiful face, beautiful eyes, beautiful girl",
+      "masterpiece, best quality, 1girl, white hair, parted bangs, pink eyes,(( huge breasts), white micro bikini, covered nipples only), collarbone, pendant, lipstick, blushing, underboob, front-tie bikini top, lace trim, delicate, beautiful, colorful, vividcolor, lighting, beautiful face, beautiful eyes, beautiful girl, delicate face, delicate girl, get wet, water drop, indoors, upper body, drop earrings, wet, parted lips",
     steps: 24,
     cfg_scale: 9,
     width: option.width || 512,
@@ -85,11 +85,16 @@ function stableDiffusionArg(option = {}) {
     seed: 123456789,
     negative_prompt:
       option.negative_prompt ||
-      "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, on ground, nipple, ground, floor",
+      "( lowres, worst quality, low quality, normal quality), bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, jpeg artifacts, signature, watermark, username, blurry, artist name",
     sampler_index: option.sampler || "DPM++ 2M Karras",
     override_settings: {
       CLIP_stop_at_last_layers: 2,
       sd_model_checkpoint: option.model,
     },
   };
+  console.log(option);
+  return option;
 }
+module.exports = {
+  saveImage,
+};
