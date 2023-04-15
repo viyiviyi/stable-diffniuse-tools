@@ -18,10 +18,10 @@ async function getImage(prompt, pngPath) {
       "http://index233:Index666@127.0.0.1:8210/sdapi/v1/txt2img",
       stableDiffusionArg({
         prompts:
-          "masterpiece, best quality,1girl,body shot," +
+          "masterpiece, best quality,solo," +
           (prompt ? prompt + "," : "") +
-          "delicate, beautiful,colorful, vividcolor, lighting",
-        model: "pvc-2.safetensors",
+          "delicate, beautiful,colorful, vividcolor, lighting, hyper detailed, ultra-detailed",
+        model: "融合\\pvc-zero.safetensors",
       })
     )
     .then((d) => d.data)

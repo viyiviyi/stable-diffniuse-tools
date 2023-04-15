@@ -77,7 +77,7 @@ function stableDiffusionArg(option = {}) {
   option = {
     prompt:
       option.prompts ||
-      "masterpiece, best quality, 1girl, white hair, parted bangs, pink eyes,(( huge breasts), white micro bikini, covered nipples only), collarbone, pendant, lipstick, blushing, underboob, front-tie bikini top, lace trim, delicate, beautiful, colorful, vividcolor, lighting, beautiful face, beautiful eyes, beautiful girl, delicate face, delicate girl, get wet, water drop, indoors, upper body, drop earrings, wet, parted lips",
+      "masterpiece, best quality, 1girl, purple eyes, wavy hair, dress, delicate, beautiful, colorful, vividcolor, lighting, hyper detailed, ultra-detailed",
     steps: 24,
     cfg_scale: 9,
     width: option.width || 512,
@@ -85,7 +85,7 @@ function stableDiffusionArg(option = {}) {
     seed: 123456789,
     negative_prompt:
       option.negative_prompt ||
-      "( lowres, worst quality, low quality, normal quality), bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, jpeg artifacts, signature, watermark, username, blurry, artist name",
+      "( lowres, worst quality, low quality, normal quality)",
     sampler_index: option.sampler || "DPM++ 2M Karras",
     override_settings: {
       CLIP_stop_at_last_layers: 2,
